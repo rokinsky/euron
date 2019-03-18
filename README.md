@@ -22,7 +22,7 @@ interpretujemy następująco (`'X'` to kod `ASCII` znaku `X`):
 
 * `'-'` – zaneguj arytmetycznie wartość na wierzchołku stosu;
 
-* `'0'` do `'9'` – wstaw na stos odpowiednio liczbę 0 do 9;
+* `'0'` do `'9'` – wstaw na stos odpowiednio liczbę `0` do `9`;
 
 * `'n'` – wstaw na stos numer euronu;
 
@@ -43,14 +43,14 @@ interpretujemy następująco (`'X'` to kod `ASCII` znaku `X`):
       uint64_t get_value(uint64_t n);
 ```
 
-* `'P'` – zdejmij wartość ze stosu (oznaczmy ją przez w) i wywołaj (zaimplementowaną
-      gdzieś indziej w języku C) funkcję
+* `'P'` – zdejmij wartość ze stosu (oznaczmy ją przez `w`) i wywołaj (zaimplementowaną
+      gdzieś indziej w języku `C`) funkcję
 ```c
       void put_value(uint64_t n, uint64_t w);
 ```
-* `'S'` – zdejmij wartość ze stosu, potraktuj ją jako numer euronu m, czekaj na
-      operację 'S' euronu m ze zdjętym ze stosu numerem euronu n i zamień
-      wartości na wierzchołkach stosów euronów m i n.
+* `'S'` – zdejmij wartość ze stosu, potraktuj ją jako numer euronu `m`, czekaj na
+      operację `'S'` euronu `m` ze zdjętym ze stosu numerem euronu `n` i zamień
+      wartości na wierzchołkach stosów euronów `m` i `n`.
 
 Po zakończeniu przez euron wykonywania obliczenia jego wynikiem, czyli wynikiem
 funkcji euron, jest wartość z wierzchołka stosu. Wszystkie operacje wykonywane
@@ -84,16 +84,18 @@ Synchronizację wątków należy zaimplementować za pomocą jakiegoś wariantu
 wirującej blokady. Rozwiązanie będzie asemblowane na maszynie students
 poleceniem:
 
-`nasm -DN=XXX -f elf64 -o euron.o euron.asm`
+```bash
+nasm -DN=XXX -f elf64 -o euron.o euron.asm
+```
 
 gdzie `XXX` określa wartość parametru `N`.
 
-Tekst źródłowy rozwiązania należy umieścić w pliku euron.asm w repozytorium SVN
+Tekst źródłowy rozwiązania należy umieścić w pliku euron.asm w repozytorium `SVN`
 w katalogu `https://svn.mimuw.edu.pl/repos/SO/studenci/login/zadanie2`, gdzie
 `login` to identyfikator używany do logowania w laboratorium. W katalogu
 z rozwiązaniem nie wolno umieszczać żadnych innych plików.
 
-Zadanie nie wymaga napisania dużego kodu. Kod maszynowy w pliku euron.asm nie
+Zadanie nie wymaga napisania dużego kodu. Kod maszynowy w pliku `euron.asm` nie
 powinien zajmować więcej niż ok. `400` bajtów. Jednak rozwiązanie powinno
 być przemyślane i dobrze przetestowane. Nie udostępniamy naszych testów, więc
 przetestowanie rozwiązania jest częścią zadania, choć nie wymagamy pokazywania
