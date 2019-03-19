@@ -45,12 +45,15 @@ int main() {
 
 
   // branch tests
-
   assert(euron(N, "21-+6-B") == 0);
   assert(euron(N, "15B00002") == 1);
   assert(euron(N, "12ED+E1-+75+-BC") == 4);
   assert(euron(0, "01234n+P56789E-+D+*G*1n-+C2*2ED+E1-+75+-BC") == 112);
   assert(euron(1, "01234n+P56789E-+D+*G*1n-+C7-7-++2ED+E1-+75+-BC") == 56);
+
+  // synchronize tests
+  assert(euron(0, "4n+1n-+S") == 5);
+  assert(euron(1, "4n+1n-+S") == 4);
 
   // 01234n+P56789E-+D+*G*1n-+2*2ED+E1-+75+-BED+E1-+75+-BC
 
