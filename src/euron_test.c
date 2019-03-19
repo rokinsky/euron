@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 
 #define N 2
 #define COMPUTE "01234n+P56789E-+D+*G*1n-+S2ED+E1-+75+-BC"
@@ -42,6 +43,9 @@ int main() {
   pthread_t thread;
   pthread_create(&thread, NULL, &thread_function, NULL);
 
+  unsigned long len = euron(N, COMPUTE);
+  fprintf(stderr, "[main] len prog: %lu, is it true? %d\n",
+      len, len == strlen(COMPUTE));
   while (1);
   return 0;
 }

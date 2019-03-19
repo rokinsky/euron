@@ -15,7 +15,24 @@ section .rodata
     _PUT    db 'P' ; 80
     _SLEEP  db 'S' ; 83
 
+    SYS_WRITE equ 1
+    SYS_EXIT  equ 60
+    STDOUT    equ 1
+
 section .text
 
-euron:
+euron:          ; "n(rdi), prog(rsi)"
+    mov rdx, rdi
+    mov rdi, rsi
+    call len
+    ret
+
+len:          ; "prog(rdi)"
+    xor rcx, rcx
+    not rcx
+    sub al, al
+    cld
+    repne scasb
+    not rcx
+    lea rax, [rcx - 1]
     ret
