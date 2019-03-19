@@ -113,3 +113,16 @@ punktów.
 
 Pytania do zadania można kierować na adres `marpe@mimuw.edu.pl` z `[SOzad2]`
 w temacie, a odpowiedzi na często zadawane pytania szukać w pliku `faq.txt`.
+
+## Notatki
+
+* busy wait;
+* n^2 semaforów binarnych;
+* czekamy na semaforze (i, j);
+* mozliwa synchronizacja samego ze soba;
+* E - licznik petli w przykladzie;
+* "...\0", ASCIIZ - z zerem na końcu;
+* rbp - base pointer do rsi, musi byc zachowany;
+* napisać semafor;
+* cmpxchng ma przewage;
+* kod na students ma być szybki;
