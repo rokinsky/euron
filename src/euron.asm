@@ -14,7 +14,6 @@ section .rodata
     _SNCH   equ 'S' ; 83
 
     SYS_WRITE equ 1
-    SYS_EXIT  equ 60
     STDOUT    equ 1
     NUL       equ 0
 
@@ -27,14 +26,17 @@ euron:          ; "n(rdi), prog(rsi)"
     mov     rbp, rsp
 
 .loop:
-    mov     r8, rdi
+    ;mov     r8, rdi
+    ;mov     r9, rsi
+    ;mov     rsi, N
     cmp     byte [rsi], NUL
     jz      .exit
-    mov     rax, SYS_WRITE
-    mov     rdi, STDOUT
-    mov     rdx, 1
-    syscall
-    mov     rdi, r8
+    ;mov     rax, SYS_WRITE
+    ;mov     rdi, STDOUT
+    ;mov     rdx, 1
+    ;syscall
+    ;mov     rdi, r8
+    ;mov     rsi, r9
 
     mov     r8, _ZERO
 .try_digit:
