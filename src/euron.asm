@@ -1,6 +1,3 @@
-global euron
-extern get_value, put_value
-
 section .rodata
     _SUM    equ '+' ; 43
     _MUL    equ '*' ; 42
@@ -22,17 +19,22 @@ section .rodata
     NUL       equ 0
 
 section .text
+    global euron
+    extern get_value, put_value
 
 euron:          ; "n(rdi), prog(rsi)"
     push    rbp
     mov     rbp, rsp
+
 .loop:
+    mov     r8, rdi
     cmp     byte [rsi], NUL
     jz      .exit
     mov     rax, SYS_WRITE
     mov     rdi, STDOUT
     mov     rdx, 1
     syscall
+    mov     rdi, r8
 
     mov     r8, _ZERO
 .try_digit:
@@ -108,15 +110,16 @@ euron:          ; "n(rdi), prog(rsi)"
     jmp     .inc
 
 .number:
+    push    rdi
     jmp     .inc
 
 .branch:
     pop     r8
     cmp     QWORD [rsp], 0
     je      .inc
-    lea     rsi, [rsi + r8]
-    test    r8, r8
-    jg      .loop
+    add     rsi, r8
+    ;test    r8, r8
+    ;jg      .loop
     jmp     .inc
 
 .clean:
@@ -136,16 +139,30 @@ euron:          ; "n(rdi), prog(rsi)"
     jmp     .inc
 
 .get:
+    push    rsi
+    push    rdi
+    call    get_value
+    pop     rdi
+    pop     rsi
+    push    rax
     jmp     .inc
 
+
 .put:
+    pop     r8
+    push    rsi
+    push    rdi
+    mov     rsi, r8
+    call    put_value
+    pop     rdi
+    pop     rsi
     jmp     .inc
 
 .synchronize:
     jmp     .inc
 
 .exit:
-    mov     rax, [rsp]
+    pop     rax
     mov     rsp, rbp
     pop     rbp
 

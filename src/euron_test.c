@@ -35,17 +35,27 @@ void put_value(uint64_t n, uint64_t v) {
 
 int main() {
 
-  fprintf(stderr, "[main] pid is %d\n", (int) getpid());
-  int64_t main_var = 42;
-  addr = &main_var;
-  fprintf(stderr, "[main] addr: %p\n", addr);
+  //fprintf(stderr, "[main] pid is %d\n", (int) getpid());
+  //int64_t main_var = 42;
+  //addr = &main_var;
+  //fprintf(stderr, "[main] addr: %p\n", addr);
 
-  pthread_t thread;
-  pthread_create(&thread, NULL, &thread_function, NULL);
+  //pthread_t thread;
+  //pthread_create(&thread, NULL, &thread_function, NULL);
 
-  unsigned long len = euron(N, COMPUTE);
-  fprintf(stderr, "[main] len prog: %lu, is it true? %d\n",
-      len, len == strlen(COMPUTE));
-  while (1);
+
+  // branch tests
+
+  assert(euron(N, "21-+6-B") == 0);
+  assert(euron(N, "15B00002") == 1);
+  assert(euron(N, "12ED+E1-+75+-BC") == 4);
+  assert(euron(0, "01234n+P56789E-+D+*G*1n-+C2*2ED+E1-+75+-BC") == 112);
+  assert(euron(1, "01234n+P56789E-+D+*G*1n-+C7-7-++2ED+E1-+75+-BC") == 56);
+
+  // 01234n+P56789E-+D+*G*1n-+2*2ED+E1-+75+-BED+E1-+75+-BC
+
+  //fprintf(stderr, "[main] len prog: %lu, is it true? %d\n",
+  //    len, len == strlen(COMPUTE));
+  //while (1);
   return 0;
 }
