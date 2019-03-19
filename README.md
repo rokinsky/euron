@@ -126,3 +126,9 @@ w temacie, a odpowiedzi na często zadawane pytania szukać w pliku `faq.txt`.
 * napisać semafor;
 * cmpxchng ma przewage;
 * kod na students ma być szybki;
+* przyklady z `branchem`
+```
+"12ED+E1-+75+-BC" => "12ED+E1-+75+-BED+E1-+75+-BC"
+"012341-+6-B"     => "012341-+6-B1-+6-B1-+6-B1-+6-B"
+"15B00001"        => "15B1"
+```
