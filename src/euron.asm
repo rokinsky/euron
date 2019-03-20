@@ -175,18 +175,29 @@ operations:
     pop     rcx
     pop     qword [values + SCALE * rdi]
 
-    ; count position [$rdi][$rcx] in locks
+    ; find my lock [$rdi][$rcx]
     mov     rax, rdi
     imul    rax, N
     add     rax, rcx
-    ; locks[$rdi][$rcx] := $rcx
+    ; spinlock.release (locks[$rdi][$rcx] := $rcx)
     lea     rax, [locks + SCALE * rax]
     mov     qword [rax], rcx
 
-    ; TODO spinlock.acquire (wait for locks[$rcx][$rdi] == $rdi)
-    ;mov     rdx, -1
-    ;xchg    qword [values + SCALE * rcx], rdx
-    ;push    rdx
-    ; TODO spinlock.release (set -1)
+    ; find partner's spin lock [$rcx][$rdi]
+    mov     rdx, rcx
+    imul    rdx, N
+    add     rdx, rdi
+    lea     rdx, [locks + SCALE * rdx]
+
+    mov     r8, 1
+.busy_wait:
+    ; spinlock.acquire (wait for locks[$rcx][$rdi] == $rdi)
+    mov     rax, rdi
+    lock \
+    cmpxchg [rdx], r8
+    jne     .busy_wait
+    mov     r9, -1
+    xchg    qword [values + SCALE * rcx], r9
+    push    r9
 
     jmp     sequence.inc
