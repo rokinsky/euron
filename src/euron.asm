@@ -13,12 +13,14 @@ section .rodata
     PUT         equ 'P' ; 80
     SYNCHRONIZE equ 'S' ; 83
     NUL         equ 0
+    SCALE       equ 8
     
     ;SYS_WRITE   equ 1
     ;STDOUT      equ 1
     
-section .bss
-    locks       resb  N*N
+section .data
+    locks       times N * N dq -1
+    values      times N dq -1
 
 section .text
     global  euron
@@ -171,16 +173,20 @@ operations:
 
 .synchronize:
     pop     rcx
-    ; TODO
-    mov     rax, N      ; ROW SIZE (N COLUMNS PER ROW).
-    mov     rbx, 35     ; DESIRED ROW (35).
-    mul     rbx         ; EAX * EBX = 8960.
+    pop     qword [values + SCALE * rdi]
 
-    mov     rdx, locks  ; POINT TO ARRAY.
-    add     rdx, rax    ; POINT TO DESIRED ROW (35).
-    add     rdx, 20     ; POINT TO DESIRED COLUMN (20).
-    ; This is for type byte,
-    ; for bigger types it will be necessary
-    ; to multiply by the size (by 2, by 4, etc).
+    ; count position [$rdi][$rcx] in locks
+    mov     rax, rdi
+    imul    rax, N
+    add     rax, rcx
+    ; locks[$rdi][$rcx] := $rcx
+    lea     rax, [locks + SCALE * rax]
+    mov     qword [rax], rcx
+
+    ; TODO spinlock.acquire (wait for locks[$rcx][$rdi] == $rdi)
+    ;mov     rdx, -1
+    ;xchg    qword [values + SCALE * rcx], rdx
+    ;push    rdx
+    ; TODO spinlock.release (set -1)
 
     jmp     sequence.inc
