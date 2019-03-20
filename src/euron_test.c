@@ -89,10 +89,8 @@ int main() {
         fprintf(stderr, "pthread_join\n");
         exit(1);
       }
-      fprintf(stderr, "[main] result euron %d is %" PRIu64 "\n",
+      fprintf(stderr, "[main] result for euron %d is %" PRIu64 "\n",
           i, (uint64_t) ret);
-      fprintf(stderr, "[main] ULLONG_MAX - res = %" PRIu64 "\n",
-          (uint64_t)ULLONG_MAX - (uint64_t) ret);
       assert((uint64_t) ret == tests[j][i].expected);
     }
     fprintf(stderr, "\n");

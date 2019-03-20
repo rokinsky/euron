@@ -189,7 +189,7 @@ operations:
     add     rdx, rdi
     lea     rdx, [locks + SCALE * rdx]
 
-    mov     r8, 1
+    mov     r8, -1
 .busy_wait:
     ; spinlock.acquire (wait for locks[$rcx][$rdi] == $rdi)
     mov     rax, rdi
