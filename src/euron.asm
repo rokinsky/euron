@@ -29,7 +29,7 @@ extern get_value, put_value
 %endmacro
 
 ; It's used only to initialization spinlocks,
-; for in_order N result is almost dq 0, ..., N - 1.
+; for sequence N result is almost dq 0, ..., N - 1.
 %macro sequence 1
 %assign i 0
 %rep    %1
