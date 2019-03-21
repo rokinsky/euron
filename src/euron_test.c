@@ -69,7 +69,9 @@ int main() {
   fprintf(stderr, "[main] pid is %d\n\n", (int) getpid());
 
   // branch tests, one thread
-  assert(euron(N, "21-+6-B") == 0);
+  const char* t = "21-+6-B";
+  assert(euron(N, t) == 0);
+  assert(strcmp(t, "21-+6-B") == 0);
   assert(euron(N, "15B00002") == 1);
   assert(euron(N, "12ED+E1-+75+-BC") == 4);
   assert(euron(0, "01234n+P56789E-+D+*G*1n-+C2*2ED+E1-+75+-BC") == 112);
