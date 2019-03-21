@@ -90,7 +90,7 @@ execute:                                 ; INVARIANT! $rdi = n, $rsi = *prog
     inc     rsi
     jmp     execute
 
-try_digit:
+try_digit:                               ; Is the current operation a digit?
     cmp     rax, NINE
     jg      operations
 
