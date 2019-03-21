@@ -3,7 +3,6 @@
 #include <assert.h>
 #include "euron.h"
 #include <pthread.h>
-#include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
 #include <memory.h>
@@ -16,7 +15,7 @@
 #include <limits.h>
 
 #define N 2
-#define N_TESTS 2
+#define N_TESTS 3
 
 typedef struct euron_args {
   uint64_t id;
@@ -30,6 +29,10 @@ typedef struct Test {
 } Test;
 
 const Test tests[N_TESTS][N] = {
+  {
+    {0, "4n+1n-+4n+1n-+SCS", 5},
+    {1, "4n+1n-+4n+1n-+SCS", 4}
+  },
   {
     {0, "4n+1n-+S", 5},
     {1, "4n+1n-+S", 4}
