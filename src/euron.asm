@@ -1,4 +1,19 @@
-; TODO macro for foo(N) return 0, ..., N - 1
+; TODO macro for in_order N return 0, ..., N - 1
+%macro in_order 1
+
+%endmacro
+
+%macro save 0
+    push    rdi                          ; saving uint64_t n
+    push    rsi                          ; saving char* prog
+%endmacro
+
+%macro revert 0
+    pop     rsi                          ; reverting char* prog
+    pop     rdi                          ; revering uint64_t n
+%endmacro
+
+%define lookup(tab, i) ((tab) + (SCALE) * (i))
 
 section .rodata
 SUM         equ '+'
@@ -14,13 +29,13 @@ EXCHANGE    equ 'E'
 GET         equ 'G'
 PUT         equ 'P'
 SYNCHRONIZE equ 'S'
-NUL         equ 0
+NUL         equ 0                        ; '\0' or 0
 SCALE       equ 8                        ; 8 bytes (64 bit)
 CLOSED      equ -1                       ; for spinlocks', (-1 % 2^64) == max N
 
 section .data
 align 8
-locks:      dq 0, 1 ; TODO foo(N)
+locks:      dq 0, 1 ; TODO in_order N
 values:     times N dq -1
 
 section .text
@@ -149,22 +164,18 @@ operations:
     jmp     sequence.inc
 
 .get:
-    push    rsi                          ; saving char* prog
-    push    rdi                          ; saving uint64_t n
+    save
     call    get_value                    ; $rax := get_value(n)
-    pop     rdi                          ; revering uint64_t n
-    pop     rsi                          ; reverting char* prog
+    revert
     push    rax
     jmp     sequence.inc
 
 .put:
     pop     rax
-    push    rsi                          ; saving char* prog
-    push    rdi                          ; saving uint64_t n
+    save
     mov     rsi, rax                     ; w := pop()
     call    put_value                    ; put_value(n, w)
-    pop     rdi                          ; revering uint64_t n
-    pop     rsi                          ; reverting char* prog
+    revert
     jmp     sequence.inc
 
 .synchronize:                            ; $rdi := i
@@ -174,14 +185,14 @@ operations:
     call    acquire                      ; acquire(i, i)
 
     pop     rsi                          ; $rsi := j
-    pop     qword [values + SCALE * rdi] ; values[i] := pop()
+    pop     qword [lookup(values, rdi)]  ; values[i] := pop()
 
     call    release                      ; release(i, j)
 
     xchg    rsi, rdi                     ; $rdi := j, $rsi := i
     call    acquire                      ; acquire(j, i)
 
-    push    qword [values + SCALE * rdi] ; push(values[j])
+    push    qword [lookup(values, rdi)]  ; push(values[j])
 
     push    rsi                          ; saving i (uint64_t n)
     mov     rsi, rdi                     ; $rdi := j, $rsi := j
@@ -194,16 +205,16 @@ operations:
 
 ; void acquire(uint64_t spinlock, uint64_t expected);
 acquire:
-    lea     r9, [locks + SCALE * rdi]    ; address of locks[spinlock]
-    mov     r8, CLOSED                   ; try to close spinlock
+    lea     r9, [lookup(locks, rdi)]     ; address of locks[spinlock]
+    mov     r8, CLOSED                   ; desired
 .loop:
-    mov     rax, rsi                     ; expected value
+    mov     rax, rsi                     ; expected
     lock \
     cmpxchg [r9], r8
     jne     .loop
     ret
 
-; void release(uint64_t spinlock, uint64_t opened);
+; void release(uint64_t spinlock, uint64_t desired);
 release:
-    mov     [locks + SCALE * rdi], rsi   ; locks[spinlock] := opened
+    mov     [lookup(locks, rdi)], rsi    ; locks[spinlock] := desired
     ret
