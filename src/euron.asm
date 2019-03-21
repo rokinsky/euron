@@ -80,10 +80,10 @@ euron:
     epilogue
     ret
 
-execute:                                 ; INVARIANT! $rdi := n, $rsi := *prog
+execute:                                 ; INVARIANT! $rdi = n, $rsi = *prog
     cmp     byte [rsi], NUL
     jz      euron.return
-    mov     rcx, ZERO
+    mov     rax, ZERO
     jmp     try_digit
 
 .next:
@@ -91,12 +91,12 @@ execute:                                 ; INVARIANT! $rdi := n, $rsi := *prog
     jmp     execute
 
 try_digit:
-    cmp     rcx, NINE
+    cmp     rax, NINE
     jg      operations
 
-    cmp     byte [rsi], cl
+    cmp     byte [rsi], al
     je      operations.digit
-    inc     rcx
+    inc     rax
     jmp     try_digit
 
 operations:
@@ -154,8 +154,8 @@ operations:
     jmp     execute.next
 
 .digit:
-    sub     rcx, ZERO
-    push    rcx
+    sub     rax, ZERO
+    push    rax
     jmp     execute.next
 
 .number:
@@ -200,7 +200,7 @@ operations:
     revert
     jmp     execute.next
 
-; REMINDER: i := n (owner, $rdi), j := euron to sync.
+; REMINDER: i = n = $rdi = owner, j = euron to sync.
 .synchronize:
     pop     rcx
     pop     rdx                          ; $rdx := value
@@ -210,7 +210,7 @@ operations:
     call    send                         ; send(i, j, pop())
     call    receive                      ; push(receive(i, j))
 
-    revert                               ; REMINDER: execution INVARIANT!
+    revert
     push    rax
     jmp     execute.next
 
