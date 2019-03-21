@@ -48,7 +48,7 @@ section .text
     extern  get_value, put_value
 
 ; uint64_t euron(uint64_t n, char const *prog);
-euron:
+euron:                                   ; invariant: n in $rdi, *prog in $rsi
     push    rbp
     mov     rbp, rsp
     jmp     sequence
