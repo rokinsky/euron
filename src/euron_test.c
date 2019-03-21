@@ -30,8 +30,8 @@ typedef struct Test {
 
 const Test tests[N_TESTS][N] = {
   {
-    {0, "4n+1n-+4n+1n-+SCS", 5},
-    {1, "4n+1n-+4n+1n-+SCS", 4}
+    {0, "5n+1n-+4n+1n-+SCS", 6},
+    {1, "5n+1n-+4n+1n-+SCS", 5}
   },
   {
     {0, "4n+1n-+S", 5},

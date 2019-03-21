@@ -1,35 +1,34 @@
-; TODO macro foo(N) : 0, ..., N - 1
+; TODO macro for foo(N) return 0, ..., N - 1
 
 section .rodata
-SUM         equ '+' ; 43
-MULTIPLY    equ '*' ; 42
-NEGATION    equ '-' ; 61
-ZERO        equ '0' ; 48
-NINE        equ '9' ; 57
-NUMBER      equ 'n' ; 110
-BRANCH      equ 'B' ; 66
-CLEAN       equ 'C' ; 67
-DUPLICATE   equ 'D' ; 68
-EXCHANGE    equ 'E' ; 69
-GET         equ 'G' ; 71
-PUT         equ 'P' ; 80
-SYNCHRONIZE equ 'S' ; 83
+SUM         equ '+'
+MULTIPLY    equ '*'
+NEGATION    equ '-'
+ZERO        equ '0'
+NINE        equ '9'
+NUMBER      equ 'n'
+BRANCH      equ 'B'
+CLEAN       equ 'C'
+DUPLICATE   equ 'D'
+EXCHANGE    equ 'E'
+GET         equ 'G'
+PUT         equ 'P'
+SYNCHRONIZE equ 'S'
 NUL         equ 0
-SCALE       equ 8   ; 8 bytes (64 bit)
-CLOSED      equ -1  ; used for spinlock, (-1 mod 2^64) = (2^64) - 1 = max N
+SCALE       equ 8                        ; 8 bytes (64 bit)
+CLOSED      equ -1                       ; for spinlocks', (-1 % 2^64) == max N
 
-;SYS_WRITE   equ 1
-;STDOUT      equ 1
-    
 section .data
-locks:      dq 0, 1
+align 8
+locks:      dq 0, 1 ; TODO foo(N)
 values:     times N dq -1
 
 section .text
     global  euron
     extern  get_value, put_value
 
-euron:          ; "n(rdi), prog(rsi)"
+; uint64_t euron(uint64_t n, char const *prog);
+euron:
     push    rbp
     mov     rbp, rsp
     jmp     sequence
@@ -44,14 +43,6 @@ align 8
 sequence:
     cmp     byte [rsi], NUL
     jz      euron.return
-    ;mov     r8, rdi
-    ;mov     r9, rsi
-    ;mov     rax, SYS_WRITE
-    ;mov     rdi, STDOUT
-    ;mov     rdx, 1
-    ;syscall
-    ;mov     rdi, r8
-    ;mov     rsi, r9
     mov     rcx, ZERO
     jmp     try_digit
 
@@ -139,8 +130,6 @@ operations:
     cmp     QWORD [rsp], NUL
     je      sequence.inc
     add     rsi, rcx
-    ;test    r8, r8
-    ;jg      .loop
     jmp     sequence.inc
 
 .clean:
@@ -160,58 +149,61 @@ operations:
     jmp     sequence.inc
 
 .get:
-    push    rsi
-    push    rdi
-    call    get_value
-    pop     rdi
-    pop     rsi
+    push    rsi                          ; saving char* prog
+    push    rdi                          ; saving uint64_t n
+    call    get_value                    ; $rax := get_value(n)
+    pop     rdi                          ; revering uint64_t n
+    pop     rsi                          ; reverting char* prog
     push    rax
     jmp     sequence.inc
 
 .put:
     pop     rax
-    push    rsi
-    push    rdi
-    mov     rsi, rax
-    call    put_value
-    pop     rdi
-    pop     rsi
+    push    rsi                          ; saving char* prog
+    push    rdi                          ; saving uint64_t n
+    mov     rsi, rax                     ; w := pop()
+    call    put_value                    ; put_value(n, w)
+    pop     rdi                          ; revering uint64_t n
+    pop     rsi                          ; reverting char* prog
     jmp     sequence.inc
 
-.synchronize:
-    pop     rcx                                 ; $rdi := i, $rcx := j
+.synchronize:                            ; $rdi := i
+    mov     rdx, rsi                     ; saving char* prog
 
-    ; TODO void acquire(uint64_t spinlock, uint64_t expected);
-    ; TODO void release(uint64_t spinlock, uint64_t opened);
+    mov     rsi, rdi                     ; $rsi := $rdi
+    call    acquire                      ; acquire(i, i)
 
-    ; acquire(i, i)
-    lea     r9, [locks + SCALE * rdi]           ; locks[i]
-    mov     r8, CLOSED                          ; value of closed spinlock
-.spinlock1_acquire:
-    mov     rax, rdi                            ; expected value (`i`)
-    lock \
-    cmpxchg [r9], r8
-    jne     .spinlock1_acquire
-                                                ; here is a critical section
-    pop     qword [values + SCALE * rdi]        ; value to exchange in values[i]
+    pop     rsi                          ; $rsi := j
+    pop     qword [values + SCALE * rdi] ; values[i] := pop()
 
-    ; release(i, j)
-.spinlock1_release:
-    mov     [locks + SCALE * rdi], rcx          ; made open for `j`
+    call    release                      ; release(i, j)
 
-    ; acquire(j, i)
-    lea     r9, [locks + SCALE * rcx]
-    mov     r8, CLOSED
-.spinlock2_acquire:
-    mov     rax, rdi
-    lock \
-    cmpxchg [r9], r8
-    jne     .spinlock2_acquire
+    xchg    rsi, rdi                     ; $rdi := j, $rsi := i
+    call    acquire                      ; acquire(j, i)
 
-    push    qword [values + SCALE * rcx]
+    push    qword [values + SCALE * rdi] ; push(values[j])
 
-    ; release(j, j)
-.spinlock2_release:
-    mov     [locks + SCALE * rcx], rcx
+    push    rsi                          ; saving i (uint64_t n)
+    mov     rsi, rdi                     ; $rdi := j, $rsi := j
+    call    release                      ; release(j, j)
+
+    pop     rdi                          ; reverting i (uint64_t n)
+    mov     rsi, rdx                     ; reverting char* prog
 
     jmp     sequence.inc
+
+; void acquire(uint64_t spinlock, uint64_t expected);
+acquire:
+    lea     r9, [locks + SCALE * rdi]    ; address of locks[spinlock]
+    mov     r8, CLOSED                   ; try to close spinlock
+.loop:
+    mov     rax, rsi                     ; expected value
+    lock \
+    cmpxchg [r9], r8
+    jne     .loop
+    ret
+
+; void release(uint64_t spinlock, uint64_t opened);
+release:
+    mov     [locks + SCALE * rdi], rsi   ; locks[spinlock] := opened
+    ret
