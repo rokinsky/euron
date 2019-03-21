@@ -5,8 +5,8 @@ extern get_value, put_value
 %define lookup(arr, i) ((arr) + (SCALE) * (i))
 
 ; ABI: until euron works,
-; $rdi stores uint64_t n, $rsi - const char* prog,
-; so save and revert are used when calling external function.
+; $rdi stores uint64_t n, $rsi - const char* prog (execution INVARIANT),
+; so save and revert are used when calling external(and not only) function.
 %macro save 0
     push    rdi
     push    rsi
@@ -18,12 +18,12 @@ extern get_value, put_value
 %endmacro
 
 ; ABI: prologue and epilogue are used to save the stack.
-%macro prologue 0
+%macro prologue 0                        ; Make new call frame.
     push    rbp
     mov     rbp, rsp
 %endmacro
 
-%macro epilogue 0
+%macro epilogue 0                        ; Restore old call frame.
     mov     rsp, rbp
     pop     rbp
 %endmacro
@@ -202,31 +202,45 @@ operations:
 
 ; REMINDER: i := n (owner, $rdi), j := euron to sync.
 .synchronize:
-    ; non-critical section
-    mov     rdx, rsi                     ; saving *prog
-    pop     rcx                          ; holds j for 1st post-protocol
+    pop     rcx
+    pop     rdx                          ; $rdx := value
+    save
+    mov     rsi, rcx                     ; $rsi := j
+
+    call    send                         ; send(i, j, pop())
+    call    receive                      ; push(receive(i, j))
+
+    revert                               ; REMINDER: execution INVARIANT!
+    push    rax
+    jmp     execute.next
+
+; void send(uint64_t sender, uint64_t receiver, uint64_t value);
+send:                                    ; "leave" value
     ; pre-protocol
+    mov     rcx, rsi                     ; holds j for post-protocol
     mov     rsi, rdi                     ; $rsi := i
     call    acquire                      ; acquire(i, i)
     ; critical section
-    pop     qword [lookup(values, rdi)]  ; values[i] := pop()
+    mov     [lookup(values, rdi)], rdx   ; values[i] := value
     ; post-protocol
     mov     rsi, rcx                     ; $rsi := j
     call    release                      ; release(i, j)
 
+    ret
+
+; uint64_t receive(uint64_t receiver, uint64_t sender);
+receive:                                 ; "pickup" value
     ; pre-protocol
     xchg    rsi, rdi                     ; $rdi := j, $rsi := i
     call    acquire                      ; acquire(j, i)
     ; critical section
-    push    qword [lookup(values, rdi)]  ; push(values[j])
+    mov     rdx, [lookup(values, rdi)]   ; $rdx := values[j]
     ; post-protocol
-    push    rsi                          ; saving i / n
     mov     rsi, rdi                     ; $rsi := j
     call    release                      ; release(j, j)
-    ; non-critical section
-    pop     rdi                          ; reverting i / n
-    mov     rsi, rdx                     ; reverting *prog
-    jmp     execute.next
+
+    mov     rax, rdx                     ; return $rdx
+    ret
 
 ; void acquire(uint64_t spinlock, uint64_t expected);
 acquire:
