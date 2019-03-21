@@ -1,7 +1,4 @@
-; TODO macro for in_order N return 0, ..., N - 1
-%macro in_order 1
-
-%endmacro
+%define lookup(tab, i) ((tab) + (SCALE) * (i))
 
 %macro save 0
     push    rdi                          ; saving uint64_t n
@@ -10,10 +7,16 @@
 
 %macro revert 0
     pop     rsi                          ; reverting char* prog
-    pop     rdi                          ; revering uint64_t n
+    pop     rdi                          ; reverting uint64_t n
 %endmacro
 
-%define lookup(tab, i) ((tab) + (SCALE) * (i))
+%macro in_order 1                        ; dq 0, ..., (%1)-1
+%assign i 0
+%rep    %1
+    dq i
+%assign i i+1
+%endrep
+%endmacro
 
 section .rodata
 SUM         equ '+'
@@ -31,12 +34,14 @@ PUT         equ 'P'
 SYNCHRONIZE equ 'S'
 NUL         equ 0                        ; '\0' or 0
 SCALE       equ 8                        ; 8 bytes (64 bit)
-CLOSED      equ -1                       ; for spinlocks', (-1 % 2^64) == max N
+CLOSED      equ -1                       ; for spinlocks'
 
 section .data
 align 8
-locks:      dq 0, 1 ; TODO in_order N
-values:     times N dq -1
+locks:      in_order N                   ; spinlocks' initialization
+
+section .bss
+values:     resq N
 
 section .text
     global  euron
@@ -207,6 +212,7 @@ operations:
 acquire:
     lea     r9, [lookup(locks, rdi)]     ; address of locks[spinlock]
     mov     r8, CLOSED                   ; desired
+align 8
 .loop:
     mov     rax, rsi                     ; expected
     lock \
