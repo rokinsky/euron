@@ -17,7 +17,7 @@ extern get_value, put_value
     pop     rdi
 %endmacro
 
-; ABI: prologue and epilogue are used to save stack.
+; ABI: prologue and epilogue are used to save the stack.
 %macro prologue 0
     push    rbp
     mov     rbp, rsp
@@ -28,7 +28,7 @@ extern get_value, put_value
     pop     rbp
 %endmacro
 
-; It's used only to initialization spinlocks,
+; It's used only to initialize spinlocks,
 ; for sequence N result is almost dq 0, ..., N - 1.
 %macro sequence 1
 %assign i 0
@@ -63,7 +63,7 @@ section .data
 ; 2. j      - opened only for j (to get values[i]),
 ; 3. CLOSED - acquired by someone (i or j).
 align 8
-locks:      sequence N                   ; 1st state initially.
+locks:      sequence N                   ; 1st state during initialization. 
 
 section .bss
 ; Protected data, values[i] holds i's value to exchange with j.
