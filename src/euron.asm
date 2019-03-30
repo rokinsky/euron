@@ -4,14 +4,14 @@ extern get_value, put_value
 ; &arr[i]
 %define lookup(arr, i) ((arr) + (SCALE) * (i))
 
-; ABI: until euron works,
+; ABI: the stack alignment before call, also until euron works,
 ; $rdi stores uint64_t n, $rsi - const char* prog (execution INVARIANT),
 ; so save and revert are used when calling external(and not only) function.
 %macro save 0
     push    rdi
     push    rsi
     mov     rbx, rsp
-    and     rsp, -16
+    and     rsp, -16                     ; $rsp := $rsp - ($rsp mod 16)
 %endmacro
 
 %macro revert 0
@@ -59,7 +59,7 @@ PUT         equ 'P'
 SYNCHRONIZE equ 'S'
 NUL         equ 0                        ; '\0' or 0
 SCALE       equ 8                        ; 8 bytes (64 bit)
-CLOSED      equ -1                       ; max N
+CLOSED      equ -1                       ; CLOSED := max N (eq max uint64_t)
 
 section .data
 ; Spinlock per euron, where i := owner, j := euron to sync.
