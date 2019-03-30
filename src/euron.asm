@@ -10,9 +10,12 @@ extern get_value, put_value
 %macro save 0
     push    rdi
     push    rsi
+    mov     rbx, rsp
+    and     rsp, -16
 %endmacro
 
 %macro revert 0
+    mov     rsp, rbx
     pop     rsi
     pop     rdi
 %endmacro
@@ -20,11 +23,13 @@ extern get_value, put_value
 ; ABI: prologue and epilogue are used to save the stack.
 %macro prologue 0                        ; Make new call frame.
     push    rbp
+    push    rbx
     mov     rbp, rsp
 %endmacro
 
 %macro epilogue 0                        ; Restore old call frame.
     mov     rsp, rbp
+    pop     rbx
     pop     rbp
 %endmacro
 

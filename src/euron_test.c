@@ -15,7 +15,7 @@
 #include <limits.h>
 
 #define N 2
-#define N_TESTS 3
+#define N_TESTS 4
 
 typedef struct euron_args {
   uint64_t id;
@@ -29,6 +29,10 @@ typedef struct Test {
 } Test;
 
 const Test tests[N_TESTS][N] = {
+  {
+    {0, "nnS", 0},
+    {1, "nnS", 1}
+  },
   {
     {0, "5n+1n-+4n+1n-+SCS", 6},
     {1, "5n+1n-+4n+1n-+SCS", 5}
