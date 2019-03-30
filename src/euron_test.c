@@ -30,8 +30,8 @@ typedef struct Test {
 
 const Test tests[N_TESTS][N] = {
   {
-    {0, "nnS", 0},
-    {1, "nnS", 1}
+    {0, "nnS4n+P4n+P", 0},
+    {1, "nnS4n+P4n+P", 1}
   },
   {
     {0, "5n+1n-+4n+1n-+SCS", 6},
@@ -48,13 +48,26 @@ const Test tests[N_TESTS][N] = {
 };
 
 uint64_t get_value(uint64_t n) {
+  const char* s = "get_value";
   assert(n < N);
-  return n + 1;
+  uint64_t res = n + 1;
+  uint64_t a = 1, b = 2, c = 3, d = 4, e = 5, f = 6, g = 7, h = 8, i = 9;
+  fprintf(stderr, "%s: %lu, %lu, %lu, %lu, %lu, %lu, %lu, %lu, %lu\n",
+      s, a, b, c, d, e, f, g, h, i
+  );
+  return res;
 }
 
 void put_value(uint64_t n, uint64_t v) {
+  const char* s = "put_value";
   assert(n < N);
-  assert(v == n + 4);
+  assert(v >= n);
+  get_value(n);
+  fprintf(stderr, "%s: %lu, %lu\n", s, n, v);
+  if (v != n)
+    put_value(n, v - 1);
+
+  return;
 }
 
 void* thread_function(void* data) {
