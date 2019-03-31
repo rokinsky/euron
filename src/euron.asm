@@ -33,16 +33,6 @@ extern get_value, put_value
     pop     rbp
 %endmacro
 
-; It's used only to initialize spinlocks,
-; for sequence N result is almost dq 0, ..., N - 1.
-%macro sequence 1
-%assign i 0
-%rep    %1
-    dq i
-%assign i i+1
-%endrep
-%endmacro
-
 section .rodata
 SUM         equ '+'
 MULTIPLY    equ '*'
@@ -68,7 +58,7 @@ section .data
 ; 2. j      - opened only for j (to get values[i]),
 ; 3. CLOSED - acquired by someone (i or j).
 align 8
-locks:      sequence N                   ; 1st state during initialization. 
+locks:      times N dq CLOSED            ; 1st state will be after prologue.
 
 section .bss
 ; Protected data, values[i] holds i's value to exchange with j.
@@ -78,7 +68,8 @@ section .text
 ; uint64_t euron(uint64_t n, char const *prog);
 euron:
     prologue
-    jmp     execute
+    mov     [lookup(locks, rdi)], rdi    ; locks[i] := i
+    jmp     execute                      ; Start the calculation.
 
 .return:
     pop     rax                          ; Calculation result.
